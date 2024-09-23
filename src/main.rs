@@ -1,14 +1,15 @@
 use actix_web::{web, App, HttpServer, HttpResponse, Responder};
 use mongodb::{bson::{doc, oid::ObjectId}, Client, Collection};
 use serde::{Deserialize, Serialize};
-use bcrypt::{hash, DEFAULT_COST};
+use bcrypt::{hash, verify, DEFAULT_COST};
 use lettre::{Message, SmtpTransport, Transport};
 use lettre::transport::smtp::authentication::Credentials;
 use dotenv::dotenv;
+use jsonwebtoken::{encode, Header, EncodingKey};
 use std::env;
 
 // User struct ko define karte hain. Yeh MongoDB document ke saath match karega.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize,Clone)]
 struct User {
     #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
     id: Option<ObjectId>,
@@ -16,6 +17,16 @@ struct User {
     email: String,
     password: String,
     user_type: String, // User type: student, teacher, admin
+}
+
+#[derive(Debug, Serialize, Deserialize,Clone)]
+struct Userlogin {
+    #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
+    id: Option<ObjectId>,
+    username: String,
+    
+    password: String,
+    
 }
 
 // MongoDB se connection establish karne ke liye setup function banate hain.
@@ -77,12 +88,38 @@ async fn create_user(user: web::Json<User>) -> impl Responder {
     }
 }
 
+// Login operation: User ko authenticate karne ka function
+async fn login_user(user: web::Json<Userlogin>) -> impl Responder {
+    let collection = get_db_collection().await;
+
+    // Find user by username
+    let filter = doc! { "username": &user.username };
+    let result = collection.find_one(filter, None).await.unwrap();
+
+    match result {
+        Some(found_user) => {
+            // Verify password
+            if verify(&user.password, &found_user.password).unwrap() {
+                // Generate JWT token
+                let claims = found_user.clone();
+                let token = encode(&Header::default(), &claims, &EncodingKey::from_secret("secret_key".as_ref())).unwrap(); // Use a strong secret key
+
+                return HttpResponse::Ok().json(token);
+            } else {
+                return HttpResponse::Unauthorized().body("Invalid password");
+            }
+        }
+        None => HttpResponse::NotFound().body("User not found"),
+    }
+}
+
 // Actix Web ko setup karte hain aur endpoints define karte hain
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     HttpServer::new(|| {
         App::new()
             .route("/register", web::post().to(create_user)) // Create user
+            .route("/login", web::post().to(login_user))     // Login user
     })
     .bind("127.0.0.1:8081")?
     .run()
