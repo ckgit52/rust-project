@@ -4,3 +4,9 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+actix-web = "4"       # Actix Web for creating the web server
+mongodb = "2.6.0"     # MongoDB driver for Rust
+serde = { version = "1.0", features = ["derive"] }  # For serialization and deserialization
+serde_json = "1.0"    # For JSON handling
+tokio = { version = "1", features = ["full"] }  # Asynchronous runtime for Actix Web and MongoDB
+uuid = { version = "1", features = ["v4"] }     # For generating unique IDs
