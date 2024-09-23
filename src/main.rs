@@ -113,6 +113,52 @@ async fn login_user(user: web::Json<Userlogin>) -> impl Responder {
     }
 }
 
+// Password change struct for /forgot-password endpoint
+#[derive(Debug, Deserialize,Clone)]
+struct PasswordChangeRequest {
+    username: String,
+    old_password: String,
+    new_password: String,
+}
+
+// Forgot password operation: Update user password
+async fn forgot_password(request: web::Json<PasswordChangeRequest>) -> impl Responder {
+    let collection = get_db_collection().await;
+
+    // Find the user by username
+    let filter = doc! { "username": &request.username };
+    let result = collection.find_one(filter.clone(), None).await.unwrap();
+
+    match result {
+        Some(mut user) => {
+            // Check if the old password matches
+            if verify(&request.old_password, &user.password).unwrap() {
+                // Check if the old password is the same as the new password
+                if request.old_password == request.new_password {
+                    return HttpResponse::BadRequest().body("New password cannot be the same as the old password.");
+                }
+
+                // Hash the new password
+                let hashed_new_password = hash(&request.new_password, DEFAULT_COST).unwrap();
+                user.password = hashed_new_password;
+
+                // Update the password in MongoDB
+                let update_doc = doc! { "$set": { "password": &user.password } };
+                let update_result = collection.update_one(filter, update_doc, None).await;
+
+                match update_result {
+                    Ok(_) => HttpResponse::Ok().body("Password updated successfully."),
+                    Err(_) => HttpResponse::InternalServerError().body("Failed to update password."),
+                }
+            } else {
+                HttpResponse::Unauthorized().body("Old password is incorrect.")
+            }
+        }
+        None => HttpResponse::NotFound().body("User not found"),
+    }
+}
+
+
 // Actix Web ko setup karte hain aur endpoints define karte hain
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -120,6 +166,8 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .route("/register", web::post().to(create_user)) // Create user
             .route("/login", web::post().to(login_user))     // Login user
+            .route("/forgot-password", web::post().to(forgot_password)) // Forgot password
+
     })
     .bind("127.0.0.1:8081")?
     .run()
