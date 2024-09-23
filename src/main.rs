@@ -1,7 +1,11 @@
 use actix_web::{web, App, HttpServer, HttpResponse, Responder};
 use mongodb::{bson::{doc, oid::ObjectId}, Client, Collection};
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
+use bcrypt::{hash, DEFAULT_COST};
+use lettre::{Message, SmtpTransport, Transport};
+use lettre::transport::smtp::authentication::Credentials;
+use dotenv::dotenv;
+use std::env;
 
 // User struct ko define karte hain. Yeh MongoDB document ke saath match karega.
 #[derive(Debug, Serialize, Deserialize)]
@@ -16,32 +20,69 @@ struct User {
 
 // MongoDB se connection establish karne ke liye setup function banate hain.
 async fn get_db_collection() -> Collection<User> {
-    let client = Client::with_uri_str("mongodb+srv://chandanrust:chandanrust@rust-project.dhmtb.mongodb.net/").await.unwrap(); // Localhost connection
+    let client = Client::with_uri_str("mongodb+srv://chandanrust:chandanrust@rust-project.dhmtb.mongodb.net/").await.unwrap();
     let db = client.database("registration");
     db.collection::<User>("users")
+}
+
+// Email confirmation function
+async fn send_confirmation_email(email: &str) -> Result<(), Box<dyn std::error::Error>> {
+    dotenv().ok(); // Load environment variables from .env file
+    let smtp_username = env::var("SMTP_USERNAME")?;
+    let smtp_password = env::var("SMTP_PASSWORD")?;
+    let smtp_host = env::var("SMTP_HOST")?;
+    let smtp_port = env::var("SMTP_PORT")?.parse::<u16>()?;
+
+    let creds = Credentials::new(smtp_username.clone(), smtp_password);
+
+    let mailer = SmtpTransport::relay(&smtp_host)?
+        .port(smtp_port)
+        .credentials(creds)
+        .build();
+
+    let email = Message::builder()
+        .from(smtp_username.parse()?)
+        .to(email.parse()?)
+        .subject("Registration Confirmation")
+        .body("Thank you for registering!".to_string())
+        .unwrap();
+
+    mailer.send(&email)?;
+
+    Ok(())
 }
 
 // Create operation: Naya user add karne ka function
 async fn create_user(user: web::Json<User>) -> impl Responder {
     let collection = get_db_collection().await;
-    let  new_user = user.into_inner();
     
+    // Hash the password
+    let hashed_password = hash(&user.password, DEFAULT_COST).unwrap();
+    
+    let mut new_user = user.into_inner();
+    new_user.password = hashed_password; // Replace plain password with hashed password
+
+    // Insert user into MongoDB
     let insert_result = collection.insert_one(new_user, None).await;
+    
     match insert_result {
-        Ok(inserted) => HttpResponse::Created().json(inserted.inserted_id),
+        Ok(inserted) => {
+            // Send confirmation email
+            if let Err(_) = send_confirmation_email(&inserted.inserted_id.to_string()).await {
+                return HttpResponse::InternalServerError().body("Failed to send confirmation email".to_string());
+            }
+            HttpResponse::Created().json(inserted.inserted_id)
+        }
         Err(_) => HttpResponse::InternalServerError().body("Failed to create user"),
     }
 }
-
-
 
 // Actix Web ko setup karte hain aur endpoints define karte hain
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     HttpServer::new(|| {
         App::new()
-            .route("/register", web::post().to(create_user))           // Create user
-            
+            .route("/register", web::post().to(create_user)) // Create user
     })
     .bind("127.0.0.1:8081")?
     .run()
