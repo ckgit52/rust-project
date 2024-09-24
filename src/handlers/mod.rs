@@ -3,6 +3,7 @@ pub mod user;
 pub mod auth;
 pub mod password;
 pub mod marks;
+pub mod edit_marks;
 
 pub use email::send_confirmation_email;
 pub use user::create_user;

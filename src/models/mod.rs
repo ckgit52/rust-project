@@ -2,7 +2,7 @@ pub mod user;
 pub mod login;
 pub mod password_change;
 pub mod marks;
-pub mod edit_mark;
+pub mod edited_mark;
 
 pub use user::User;
 pub use login::UserLogin;
