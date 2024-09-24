@@ -10,6 +10,8 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 bcrypt = "0.12"  # Adjust to the latest version
 lettre = { version = "0.10.4" }
+lettre_email = "0.9.4"
+
 
 dotenv = "0.15"  # Adjust to the latest version
 jsonwebtoken = "8.1"  # Adjust to the latest version
