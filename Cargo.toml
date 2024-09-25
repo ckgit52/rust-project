@@ -15,3 +15,5 @@ lettre_email = "0.9.4"
 
 dotenv = "0.15"  # Adjust to the latest version
 jsonwebtoken = "8.1"  # Adjust to the latest version
+futures-util = "0.3"
+futures = "0.3"

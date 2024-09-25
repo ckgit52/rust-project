@@ -8,6 +8,7 @@ pub mod edit_marks;
 pub mod getStudents;
 pub mod publishResults;
 pub mod deleteMarks;
+pub mod get_results;
 
 pub use email::send_confirmation_email;
 pub use user::create_user;
