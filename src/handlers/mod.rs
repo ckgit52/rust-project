@@ -6,7 +6,7 @@ pub mod add_marks;
 pub mod edit_marks;
 
 pub mod delete_marks;
-pub mod get_results;
+// pub mod get_results;
 pub mod get_students;
 // pub mod publish;
 pub use send_email::send_confirmation_email;

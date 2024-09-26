@@ -15,7 +15,7 @@ pub async fn add_marks(marks: web::Json<Marks>) -> impl Responder {
 
     // Check if marks already exist for the given student_id
     let existing_marks = collection
-        .find_one(doc! { "student_id": &new_marks.student_id }, None)
+        .find_one(doc! { "username": &new_marks.username }, None)
         .await;
 
     match existing_marks {
