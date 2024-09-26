@@ -3,7 +3,7 @@ use mongodb::bson::doc;
 use crate::db::marks_db::get_marks_collection;
 use crate::db::user_db::get_db_collection; // Adjust based on your project structure
 use crate::models::edited_mark::EditMarksRequest;
-use crate::handlers::email::send_confirmation_email; // Ensure this path is correct
+use crate::handlers::send_email::send_confirmation_email; // Ensure this path is correct
 
 pub async fn edit_mark(mark_info: web::Json<EditMarksRequest>) -> impl Responder {
 

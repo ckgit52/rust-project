@@ -2,7 +2,7 @@ use actix_web::{web, HttpResponse, Responder};
 use bcrypt::{hash, DEFAULT_COST};
 use crate::db::user_db::get_db_collection;
 use crate::models::User;
-use crate::handlers::email::send_confirmation_email;
+use crate::handlers::send_email::send_confirmation_email;
 use mongodb::bson::doc; 
 // Create operation: Add a new user
 pub async fn create_user(user: web::Json<User>) -> impl Responder {
