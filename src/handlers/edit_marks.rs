@@ -1,16 +1,21 @@
-use actix_web::{web, HttpResponse, Responder};
+use actix_web::{web, HttpResponse, Responder,HttpRequest};
 use mongodb::bson::doc;
 use crate::db::marks_db::get_marks_collection;
 use crate::db::user_db::get_db_collection; // Adjust based on your project structure
 use crate::models::edited_mark::EditMarksRequest;
 use crate::handlers::send_email::send_confirmation_email; // Ensure this path is correct
 
-pub async fn edit_mark(mark_info: web::Json<EditMarksRequest>) -> impl Responder {
+pub async fn edit_mark(mark_info: web::Json<EditMarksRequest>, req:HttpRequest) -> impl Responder {
     // Check if the user is a teacher
-    if mark_info.user_type != "teacher" {
-        return HttpResponse::Unauthorized().body("Only teachers can edit marks");
-    }
+    let user_role = req.headers().get("Role").and_then(|h| h.to_str().ok());
 
+    if let Some(role) = user_role {
+        if role != "teacher" {
+            return HttpResponse::Forbidden().body("Only teachers can edit  marks");
+        }
+    } else {
+        return HttpResponse::Forbidden().body("Role not found");
+    }
     let collection = get_marks_collection().await;
     let request = mark_info.into_inner();
 

@@ -1,6 +1,5 @@
 use actix_web::{web, HttpResponse, Responder, HttpRequest};
-use mongodb::bson::{doc};
-use futures::stream::StreamExt; // Import for stream extensions
+use mongodb::bson::{doc, from_document, Document}; // Ensure to import Document
 use futures_util::TryStreamExt; // Import for try_next
 use crate::db::marks_db::get_marks_collection;
 use crate::models::Marks; // Import Marks struct
@@ -22,20 +21,27 @@ pub async fn get_students(req: HttpRequest, query: web::Query<std::collections::
     // Fetch data from the MongoDB collection
     let collection = get_marks_collection().await;
 
+    // Find all documents
     let mut cursor = collection.find(None, None).await.unwrap();
 
     let mut results: Vec<Marks> = Vec::new();
+    
     while let Some(result) = cursor.try_next().await.unwrap() {
-        // Assuming `result` is of type `Marks`
-        let marks: Marks = result;
+        // result is of type Document
+        match from_document::<Marks>(result) {
+            Ok(marks) => {
+                // Calculate average marks
+                let average = (marks.subject1 + marks.subject2) as f32 / 2.0;
+                let student_grade = if average > 33.0 { "pass" } else { "fail" };
 
-        // Calculate average marks
-        let average = (marks.subject1 + marks.subject2) as f32 / 2.0;
-        let student_grade = if average > 33.0 { "pass" } else { "fail" };
-
-        // Check if the student's grade matches the query parameter
-        if student_grade == grade_param {
-            results.push(marks);
+                // Check if the student's grade matches the query parameter
+                if student_grade == grade_param {
+                    results.push(marks);
+                }
+            },
+            Err(err) => {
+                eprintln!("Failed to deserialize document: {:?}", err);
+            }
         }
     }
 
