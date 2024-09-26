@@ -8,7 +8,7 @@ pub async fn send_confirmation_email(email: &str) -> Result<(), Box<dyn std::err
     let smtp_password = env::var("SMTP_PASSWORD")?;
     let smtp_host = env::var("SMTP_HOST")?;
     let smtp_port = env::var("SMTP_PORT")?.parse::<u16>()?;
-
+    
     let creds = Credentials::new(smtp_username.clone(), smtp_password);
     let mailer = SmtpTransport::relay(&smtp_host)?
         .port(smtp_port)
