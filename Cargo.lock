@@ -265,6 +265,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "71938f30533e4d95a6d17aa530939da3842c2ab6f4f84b9dae68447e4129f74a"
 
 [[package]]
+name = "async-once-cell"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f8d4e06e69d8556d8c1c82178f301ff043b080c1aa91152bba9873c112ff3219"
+
+[[package]]
 name = "async-trait"
 version = "0.1.82"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2100,6 +2106,7 @@ name = "rust-project"
 version = "0.1.0"
 dependencies = [
  "actix-web",
+ "async-once-cell",
  "bcrypt",
  "dotenv",
  "futures",
@@ -2108,8 +2115,10 @@ dependencies = [
  "lettre 0.11.9",
  "lettre_email",
  "mongodb",
+ "once_cell",
  "serde",
  "serde_json",
+ "tokio",
 ]
 
 [[package]]
