@@ -24,10 +24,15 @@ Condition :
 an email, Like, You teacher Banu, added your marks.
 9. /edit-mark -> Only teachers can access this endpoint to edit any student's
 marks.
-Condition :
-1. Once the teacher finish the edit the mark the student have to get
-email, Like, You teacher Banu, edited your marks in English subject
-to 60 -> 90.. etc
+    Condition :
+    1. Once the teacher finish the edit the mark the student have to get
+    email, Like, You teacher Banu, edited your marks in English subject
+    to 60 -> 90.. etc
+
+10. /get-results    done
+11. /get-students   done
+
+    
 
 ....problem i m facing currently
-i)sending confirmation mails
+i)sending confirmation mails due to some setting else wise everything  in the project is done  
