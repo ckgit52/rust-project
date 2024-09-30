@@ -36,3 +36,9 @@ marks.
 
 ....problem i m facing currently
 i)sending confirmation mails due to some setting else wise everything  in the project is done  
+
+error i m getting
+
+Error: lettre::transport::smtp::Error { kind: Connection, source: lettre::transport::smtp::Error { kind: Connection, source: Custom { kind: InvalidData, error: CorruptMessage } } }
+
+Enable Less Secure Apps --> i m not able to find this in my google account setting
