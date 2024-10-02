@@ -1,5 +1,6 @@
 added rust-sample-project 
 added the codes of starting actix web into this
+
 added codes of traits and impl which i practiced
 added code for send mail functionaliity
 
