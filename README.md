@@ -11,3 +11,4 @@ added rust cheat sheet for syntax revision
 allot of thing i praticed/learned not added into this
 i use online compiler a lot for small practices and other online refrences to learn things
 
+lifetime in rust done
